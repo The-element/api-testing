@@ -1,6 +1,4 @@
-const baseURL = "https://ci-swapi.herokuapp.com/api/";  //Stores the url to the api.
-
-function getData(type, cb) {    //Creates the function getData
+function getData(url, cb) {    //Creates the function getData
     var xhr = new XMLHttpRequest();//this gives us the method to open connections, to send connections, and close them.
 //XML stands for Extensible Markup Language, which is similar to HTML in the way it structures its data, and it's a precursor to JSON.
 
@@ -13,7 +11,7 @@ function getData(type, cb) {    //Creates the function getData
         }
     };
 
-    xhr.open("GET", baseURL + type + "/");
+    xhr.open("GET", url);
     xhr.send();
 }
 
@@ -25,12 +23,29 @@ function getTableHeaders(obj){
     return `<tr>${tableHeaders}</tr>`;
 }
 
-function writeToDocument(type) {
+function generatePaginationButtons(next, prev){
+    if(next && prev){
+        return `<button onclick="writeToDocument('${prev}')">Previous</button>
+                <button onclick="writeToDocument('${next}')">Next</button>`;
+    }else if(next && !prev){
+        return `<button onclick="writeToDocument('${next}')">Next</button>`;
+    }else if(!next && prev){
+        return `<button onclick="writeToDocument('${prev}')">Previous</button>`;
+    }
+};
+
+function writeToDocument(url) {
     var tableRows = [];
     var el = document.getElementById("data");
     el.innerHTML = "";
 
-    getData(type, function(data) {
+    getData(url, function(data) {
+
+        var pagination;
+        if(data.next || data.previous){
+            pagination = generatePaginationButtons(data.next, data.previous);
+        };
+
         data = data.results;
         var tableHeaders = getTableHeaders(data[0]);
 
@@ -45,6 +60,6 @@ function writeToDocument(type) {
             });
             tableRows.push(`<tr>${dataRow}</tr>`);
         });
-        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>`;
+        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>${pagination}`;
     });
 }
